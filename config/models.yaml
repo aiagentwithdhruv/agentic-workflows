@@ -1,48 +1,96 @@
 # LLM Routing — which model for which task type
 # Override per-workflow by specifying model in the workflow's YAML frontmatter
-# Add your own providers below
 
-default: claude-sonnet-4-6
+# === RECOMMENDED: Start with Euri (free 200K tokens/day) ===
+default: euri/gpt-4o-mini
 
 tasks:
   # Deep reasoning, complex planning, multi-step analysis
-  research: claude-opus-4-6
-  planning: claude-opus-4-6
-  code_review: claude-opus-4-6
+  research: euri/gpt-4o
+  planning: euri/gpt-4o
+  code_review: euri/gpt-4o
 
   # Balanced — generation, coding, summarization
-  generation: claude-sonnet-4-6
-  code: claude-sonnet-4-6
-  summarization: claude-sonnet-4-6
+  generation: euri/gpt-4o-mini
+  code: euri/gpt-4o-mini
+  summarization: euri/gpt-4o-mini
 
   # Fast + cheap — classification, extraction, formatting
-  classification: claude-haiku-4-5
-  extraction: claude-haiku-4-5
-  formatting: claude-haiku-4-5
-  tagging: claude-haiku-4-5
+  classification: euri/gpt-4o-mini
+  extraction: euri/gpt-4o-mini
+  formatting: euri/gpt-4o-mini
+  tagging: euri/gpt-4o-mini
 
-# Provider endpoints — add/remove based on your project
+  # If you have Anthropic/OpenAI keys, upgrade specific tasks:
+  # research: claude-opus-4-6
+  # code: claude-sonnet-4-6
+  # generation: openrouter/anthropic/claude-sonnet-4-6
+
+# ============================================================
+# Provider endpoints (priority order)
+# ============================================================
+
 providers:
+  # --- PRIORITY 1: Euri (Euron AI Gateway) ---
+  # Free 200K tokens/day | 24 models | OpenAI-compatible
+  # Sign up: euron.one → Dashboard → API Key
+  # Use with OpenAI SDK: just swap base_url
+  euri:
+    base_url: https://api.euron.one/api/v1/euri
+    env_key: EURI_API_KEY
+    compatible_with: openai
+    free_tier: 200K tokens/day
+    models:
+      - gpt-4o
+      - gpt-4o-mini
+      - claude-3.5-sonnet
+      - gemini-1.5-pro
+      - llama-3.1-70b
+      - mistral-large
+      # 24 models total — see euron.one for full list
+    setup: |
+      from openai import OpenAI
+      client = OpenAI(
+          base_url="https://api.euron.one/api/v1/euri",
+          api_key=os.getenv("EURI_API_KEY")
+      )
+      response = client.chat.completions.create(
+          model="gpt-4o-mini",
+          messages=[{"role": "user", "content": "Hello"}]
+      )
+
+  # --- PRIORITY 2: OpenRouter (300+ models, all providers) ---
+  # One API key → access Claude, GPT-4o, Gemini, Llama, Mistral, etc.
+  # Sign up: openrouter.ai → free credits on signup
+  # OpenAI-compatible: same SDK, swap base_url
+  openrouter:
+    base_url: https://openrouter.ai/api/v1
+    env_key: OPENROUTER_API_KEY
+    compatible_with: openai
+    models:
+      - anthropic/claude-sonnet-4-6
+      - anthropic/claude-opus-4-6
+      - openai/gpt-4o
+      - openai/gpt-4o-mini
+      - google/gemini-2.5-pro
+      - meta-llama/llama-3.1-405b
+      - mistralai/mistral-large
+      # 300+ models — see openrouter.ai/models
+    setup: |
+      from openai import OpenAI
+      client = OpenAI(
+          base_url="https://openrouter.ai/api/v1",
+          api_key=os.getenv("OPENROUTER_API_KEY")
+      )
+      response = client.chat.completions.create(
+          model="anthropic/claude-sonnet-4-6",
+          messages=[{"role": "user", "content": "Hello"}]
+      )
+
+  # --- Direct providers (if you have keys) ---
   anthropic:
     base_url: https://api.anthropic.com
     env_key: ANTHROPIC_API_KEY
   openai:
     base_url: https://api.openai.com/v1
     env_key: OPENAI_API_KEY
-  euri:
-    # Euron's unified AI gateway — OpenAI-compatible, 200K free tokens/day
-    # Sign up at euron.one, get your API key from dashboard
-    # Works with any OpenAI-compatible SDK — just swap base_url
-    base_url: https://api.euron.one/api/v1/euri
-    env_key: EURI_API_KEY
-    compatible_with: openai  # use OpenAI SDK with this base_url
-    models:
-      - gpt-4o
-      - gpt-4o-mini
-      - claude-3.5-sonnet
-      - gemini-1.5-pro
-      # 24 models total — see euron.one/models for full list
-  # Add custom providers here:
-  # custom_provider:
-  #   base_url: https://your-gateway.com/v1
-  #   env_key: CUSTOM_API_KEY

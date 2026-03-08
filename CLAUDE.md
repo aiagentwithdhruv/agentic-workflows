@@ -161,22 +161,31 @@ After creating a tool, update `tools/registry.yaml` with its schema.
 ## Config System
 
 ### models.yaml — LLM Routing
-```yaml
-default: claude-sonnet-4-6
-tasks:
-  research: claude-opus-4-6        # deep research needs reasoning
-  classification: claude-haiku-4-5  # fast + cheap for categorization
-  summarization: claude-haiku-4-5   # fast + cheap
-  generation: claude-sonnet-4-6     # balanced
-  code: claude-sonnet-4-6           # code generation
-```
 
-**Euri Gateway (free option):** Euri (euron.one) provides an OpenAI-compatible gateway with 200K free tokens/day across 24 models. To use it in any tool, just swap the base URL:
+Three providers available (priority order):
+
+| Priority | Provider | What You Get | Cost |
+|----------|----------|-------------|------|
+| 1 | **Euri** (euron.one) | 24 models, OpenAI-compatible | Free 200K tokens/day |
+| 2 | **OpenRouter** (openrouter.ai) | 300+ models, all providers | Pay-per-use, free credits on signup |
+| 3 | Anthropic / OpenAI direct | Direct API access | Pay-per-use |
+
+**Start with Euri** — it's free and covers most use cases. Upgrade to OpenRouter or direct keys when you need specific models or higher limits.
+
+All three are OpenAI-compatible — same SDK, just swap the base URL:
 ```python
 from openai import OpenAI
+
+# Euri (free)
 client = OpenAI(base_url="https://api.euron.one/api/v1/euri", api_key=EURI_API_KEY)
+
+# OpenRouter (300+ models)
+client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=OPENROUTER_API_KEY)
+
+# OpenAI direct
+client = OpenAI(api_key=OPENAI_API_KEY)
 ```
-See `config/models.yaml` for full provider setup.
+See `config/models.yaml` for full provider setup and model lists.
 
 ### settings.yaml — Global Settings
 ```yaml
