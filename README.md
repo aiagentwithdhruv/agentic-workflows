@@ -9,10 +9,16 @@ A code-first framework for building AI-powered automations. Tell the agent what 
 ```bash
 git clone https://github.com/aiagentwithdhruv/agentic-workflows.git
 cd agentic-workflows
-cp .env.example .env       # Add your API keys
 ```
 
-Open in [Claude Code](https://claude.ai/claude-code) or [Cursor](https://cursor.com) and prompt:
+Open in [Claude Code](https://claude.ai/claude-code) or [Cursor](https://cursor.com) and start prompting. That's it.
+
+The agent will:
+1. Auto-create your `.env` file on first run
+2. Ask for your [Euri API key](https://euron.one) (free — 200K tokens/day)
+3. Set everything up for you
+
+Then just tell it what to build:
 
 ```
 "Build me an automation that researches a topic and emails me a summary"

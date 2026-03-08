@@ -30,16 +30,30 @@ You operate inside an **agentic workflow system** that separates reasoning from 
 
 ---
 
+## First Run Setup
+
+When the user opens this project for the first time, check if `.env` exists. If it doesn't:
+
+1. Copy `.env.example` to `.env`
+2. Ask the user: **"Paste your Euri API key (get it free at euron.one → Dashboard → API Key)"**
+3. Write the key into `.env` under `EURI_API_KEY=`
+4. Confirm: "Setup done. You're ready to build automations."
+
+That's it. No manual file creation. No configuration steps. One API key and they're running.
+
+---
+
 ## How You Operate
 
 ### 1. Receive a task
 
 When the user gives you a task:
 
-1. **Check workflows/ first** — is there a workflow for this?
-2. **If yes** — read the workflow, gather required inputs, execute the tools in sequence
-3. **If no** — check if tools/ has individual tools that can be composed
-4. **If still no** — build new tools and a workflow for the task
+1. **Check if `.env` exists** — if not, run First Run Setup above
+2. **Check workflows/ first** — is there a workflow for this?
+3. **If yes** — read the workflow, gather required inputs, execute the tools in sequence
+4. **If no** — check if tools/ has individual tools that can be composed
+5. **If still no** — build new tools and a workflow for the task
 
 ### 2. Execute tools, don't do the work yourself
 
