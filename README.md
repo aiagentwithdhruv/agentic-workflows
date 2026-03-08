@@ -109,10 +109,6 @@ Error occurs → Agent reads the error → Fixes the tool → Verifies the fix
 
 Every failure makes the system more robust. The more you use it, the fewer things break.
 
-## Credits
-
-Architecture inspired by the [WAT pattern](https://x.com) (Workflows, Agents, Tools) — a standard industry approach to separating AI reasoning from deterministic code execution, used across LangChain, CrewAI, Anthropic's agent patterns, and more.
-
 ## License
 
 MIT
