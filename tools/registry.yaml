@@ -1,0 +1,22 @@
+# Tool Registry — auto-maintained by agent
+# Every tool in tools/ must have an entry here
+# Agent reads this to understand what's available before executing
+
+# Format:
+# tool_name:
+#   file: tools/<name>.py
+#   description: one line
+#   inputs:
+#     - name: <arg_name>
+#       type: string | integer | float | boolean | file_path
+#       required: true | false
+#       description: what this input is
+#   outputs:
+#     - name: <output_name>
+#       type: string | json | file
+#       description: what this output is
+#   credentials: [ENV_VAR_1, ENV_VAR_2]  # from .env
+#   cost: "$X.XX per run" or "free"
+#   composable_with: [other_tool_1, other_tool_2]
+
+# --- Add tools below as you create them ---

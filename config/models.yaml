@@ -1,0 +1,48 @@
+# LLM Routing — which model for which task type
+# Override per-workflow by specifying model in the workflow's YAML frontmatter
+# Add your own providers below
+
+default: claude-sonnet-4-6
+
+tasks:
+  # Deep reasoning, complex planning, multi-step analysis
+  research: claude-opus-4-6
+  planning: claude-opus-4-6
+  code_review: claude-opus-4-6
+
+  # Balanced — generation, coding, summarization
+  generation: claude-sonnet-4-6
+  code: claude-sonnet-4-6
+  summarization: claude-sonnet-4-6
+
+  # Fast + cheap — classification, extraction, formatting
+  classification: claude-haiku-4-5
+  extraction: claude-haiku-4-5
+  formatting: claude-haiku-4-5
+  tagging: claude-haiku-4-5
+
+# Provider endpoints — add/remove based on your project
+providers:
+  anthropic:
+    base_url: https://api.anthropic.com
+    env_key: ANTHROPIC_API_KEY
+  openai:
+    base_url: https://api.openai.com/v1
+    env_key: OPENAI_API_KEY
+  euri:
+    # Euron's unified AI gateway — OpenAI-compatible, 200K free tokens/day
+    # Sign up at euron.one, get your API key from dashboard
+    # Works with any OpenAI-compatible SDK — just swap base_url
+    base_url: https://api.euron.one/api/v1/euri
+    env_key: EURI_API_KEY
+    compatible_with: openai  # use OpenAI SDK with this base_url
+    models:
+      - gpt-4o
+      - gpt-4o-mini
+      - claude-3.5-sonnet
+      - gemini-1.5-pro
+      # 24 models total — see euron.one/models for full list
+  # Add custom providers here:
+  # custom_provider:
+  #   base_url: https://your-gateway.com/v1
+  #   env_key: CUSTOM_API_KEY

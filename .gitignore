@@ -1,0 +1,24 @@
+# Secrets
+.env
+credentials.json
+token.json
+*.pem
+*.key
+
+# Temporary files
+.tmp/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Run logs (optional — uncomment to track in git)
+# runs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
