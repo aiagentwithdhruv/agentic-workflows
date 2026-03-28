@@ -15,12 +15,26 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from shared.env_loader import load_env
 from shared.logger import get_logger
+from shared.cost_tracker import check_budget
+from shared.sandbox import validate_output_path
+from shared.sanitize import sanitize_input
 
 logger = get_logger(__name__)
 
 
 def main(args):
     """Main execution logic."""
+    # Security: validate budget before any paid API calls
+    check_budget()
+
+    # Security: sanitize user inputs
+    if args.input:
+        args.input = sanitize_input(args.input)
+
+    # Security: validate output path is within allowed directories
+    if args.output:
+        args.output = str(validate_output_path(args.output))
+
     logger.info(f"Starting [tool_name]", extra={"inputs": vars(args)})
 
     try:
@@ -50,7 +64,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="[Tool description]")
     parser.add_argument("--input", help="Input file path or value")
-    parser.add_argument("--output", help="Output file path (default: stdout)")
+    parser.add_argument("--output", help="Output file path (must be in .tmp/ or runs/)")
     # Add tool-specific arguments here
 
     args = parser.parse_args()

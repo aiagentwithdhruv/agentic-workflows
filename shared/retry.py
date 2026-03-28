@@ -10,14 +10,32 @@ from shared.logger import get_logger
 logger = get_logger(__name__)
 
 
+# Only retry on transient/network errors — not on logic bugs or budget limits
+TRANSIENT_EXCEPTIONS = (
+    ConnectionError,
+    TimeoutError,
+    OSError,  # covers network-level socket errors
+)
+
+# Exceptions that should NEVER be retried
+NON_RETRYABLE = (
+    ValueError,
+    TypeError,
+    KeyError,
+    FileNotFoundError,
+    PermissionError,
+    NotImplementedError,
+)
+
+
 def retry(
     max_attempts: int = 3,
     base_delay: float = 2.0,
     max_delay: float = 30.0,
     backoff: str = "exponential",
-    retryable_exceptions: tuple = (Exception,),
+    retryable_exceptions: tuple = TRANSIENT_EXCEPTIONS,
 ):
-    """Decorator that retries a function on failure.
+    """Decorator that retries a function on transient failures only.
 
     Args:
         max_attempts: Maximum number of attempts
@@ -25,6 +43,7 @@ def retry(
         max_delay: Maximum delay cap in seconds
         backoff: "exponential" | "linear" | "fixed"
         retryable_exceptions: Tuple of exception types to retry on
+            (defaults to network/timeout errors only)
     """
 
     def decorator(func):

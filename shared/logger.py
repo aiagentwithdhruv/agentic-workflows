@@ -10,31 +10,34 @@ from datetime import datetime, timezone
 
 
 class JSONFormatter(logging.Formatter):
-    """Outputs log records as single-line JSON."""
+    """Outputs log records as single-line JSON with secret masking."""
 
     def format(self, record):
+        # Import here to avoid circular imports
+        from shared.secrets import mask_secrets, mask_dict
+
         log_entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
-            "message": record.getMessage(),
+            "message": mask_secrets(record.getMessage()),
         }
 
-        # Include extra fields (inputs, outputs, cost, etc.)
+        # Include extra fields with secret masking
         if hasattr(record, "inputs"):
-            log_entry["inputs"] = record.inputs
+            log_entry["inputs"] = mask_dict(record.inputs) if isinstance(record.inputs, dict) else mask_secrets(str(record.inputs))
         if hasattr(record, "outputs"):
-            log_entry["outputs"] = record.outputs
+            log_entry["outputs"] = mask_dict(record.outputs) if isinstance(record.outputs, dict) else mask_secrets(str(record.outputs))
         if hasattr(record, "cost_usd"):
             log_entry["cost_usd"] = record.cost_usd
         if hasattr(record, "duration_ms"):
             log_entry["duration_ms"] = record.duration_ms
 
-        # Include exception info
+        # Include exception info (mask secrets in error messages)
         if record.exc_info and record.exc_info[0]:
             log_entry["error"] = {
                 "type": record.exc_info[0].__name__,
-                "message": str(record.exc_info[1]),
+                "message": mask_secrets(str(record.exc_info[1])),
             }
 
         return json.dumps(log_entry)

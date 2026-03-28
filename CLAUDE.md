@@ -119,10 +119,14 @@ agentic-workflows/
 │   ├── registry.yaml         # Tool registry (auto-maintained)
 │   └── <name>.py             # One file per tool
 ├── shared/
-│   ├── logger.py             # Structured logging (JSON, timestamps)
-│   ├── retry.py              # Retry with exponential backoff
-│   ├── cost_tracker.py       # Track API costs per run
-│   └── env_loader.py         # Load and validate .env
+│   ├── logger.py             # Structured logging (JSON, timestamps, secret-masked)
+│   ├── retry.py              # Retry with exponential backoff (transient errors only)
+│   ├── cost_tracker.py       # Track API costs per run (blocking budget enforcement)
+│   ├── env_loader.py         # Load and validate .env
+│   ├── tool_validator.py     # Scan tools for dangerous imports before execution
+│   ├── sandbox.py            # Restrict file read/write paths
+│   ├── secrets.py            # Mask API keys in logs and output
+│   └── sanitize.py           # Input sanitization and URL validation
 ├── runs/                     # Run logs (auto-generated)
 ├── .tmp/                     # Intermediate files (disposable)
 └── .gitignore
@@ -244,6 +248,39 @@ Error occurs
 ```
 
 This is not optional. Every error is a chance to improve. Skip this loop and the system stays fragile.
+
+---
+
+## Security Guardrails
+
+These rules are **non-negotiable**. They protect the user, their data, and their API credits.
+
+### Tool Safety
+1. **Validate every new tool before execution** — run `shared/tool_validator.py` on any newly created or modified `.py` file before running it. Block execution if validation fails.
+2. **Never use dangerous functions in tools** — `exec()`, `eval()`, `subprocess`, `os.system()`, `os.popen()`, `__import__()` are all BLOCKED. If a tool needs shell access, the user must explicitly approve it.
+3. **Always ask user confirmation before executing a newly created tool for the first time.**
+4. **Never embed raw external data into tool source code** — all external inputs must be passed as arguments or read from files at runtime.
+
+### Input/Output Safety
+5. **Sanitize all user inputs** — use `shared/sanitize.py` to remove shell metacharacters before passing to tools. Never use `shell=True` with subprocess.
+6. **Validate all output paths** — use `shared/sandbox.py` to ensure tools only write to `.tmp/`, `runs/`, `leads/`, or `output/`. Never write to system directories.
+7. **Validate URLs** — only allow `http://` and `https://` schemes. Block internal/private network IPs.
+
+### Secrets & Logging
+8. **Secrets stay in `.env`** — nowhere else, ever. Never log, print, or embed API keys.
+9. **All logs are secret-masked** — the logger in `shared/logger.py` automatically redacts API keys and tokens. Never bypass this.
+10. **Never include raw API keys, passwords, or PII in run logs.**
+
+### Budget Protection
+11. **Budget enforcement is blocking** — `check_budget()` raises `BudgetExceededError` if the daily limit ($5 default) is exceeded. Do NOT catch and ignore this exception.
+12. **Check budget before any paid API call** — every tool template includes `check_budget()` as a mandatory pre-execution step.
+13. **Per-run limit is $2.00** — use `check_run_budget()` for estimated costs above this threshold.
+14. **Always confirm with the user before retrying tools that cost money.**
+
+### What's Protected
+- `shared/` security modules (`tool_validator.py`, `sandbox.py`, `secrets.py`, `sanitize.py`) — never modify without user approval
+- `.env` file — never read its contents into logs or tool output
+- `CLAUDE.md` — never overwrite without asking
 
 ---
 

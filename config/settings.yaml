@@ -7,8 +7,10 @@ retry:
   max_delay_seconds: 30
 
 cost:
-  daily_limit_usd: 10.00
-  warn_at_usd: 5.00
+  daily_limit_usd: 5.00       # Conservative for students
+  per_run_limit_usd: 2.00     # Max cost for a single run
+  confirm_above_usd: 0.50     # Ask user before spending more than this
+  warn_at_usd: 3.00
   track_per_run: true
 
 logging:

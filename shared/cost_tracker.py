@@ -1,6 +1,7 @@
 """
 Cost tracker for API usage across workflow runs.
 Tracks per-tool and per-run costs to stay within budget.
+Budget enforcement is BLOCKING — exceeding limits raises an exception.
 """
 
 import json
@@ -13,6 +14,16 @@ from shared.logger import get_logger
 logger = get_logger(__name__)
 
 COST_LOG_PATH = Path(__file__).parent.parent / "runs" / "costs.jsonl"
+
+# Default limits (can be overridden via settings.yaml)
+DEFAULT_DAILY_LIMIT = 5.00  # Conservative for students
+DEFAULT_PER_RUN_LIMIT = 2.00
+DEFAULT_CONFIRM_THRESHOLD = 0.50
+
+
+class BudgetExceededError(Exception):
+    """Raised when a cost operation would exceed the budget."""
+    pass
 
 
 def log_cost(tool_name: str, cost_usd: float, details: str = ""):
@@ -61,23 +72,52 @@ def get_daily_spend() -> float:
     return round(total, 4)
 
 
-def check_budget(daily_limit_usd: float = 10.0) -> bool:
-    """Check if we're within daily budget.
+def check_budget(daily_limit_usd: float = DEFAULT_DAILY_LIMIT) -> bool:
+    """Check if we're within daily budget. Raises exception if over limit.
 
     Args:
         daily_limit_usd: Daily spending limit
 
     Returns:
-        True if within budget, False if over limit
+        True if within budget
+
+    Raises:
+        BudgetExceededError: If daily limit is exceeded
     """
     spent = get_daily_spend()
     remaining = daily_limit_usd - spent
 
     if remaining <= 0:
-        logger.warning(f"BUDGET EXCEEDED: ${spent:.2f} spent (limit: ${daily_limit_usd:.2f})")
-        return False
+        msg = f"BUDGET EXCEEDED: ${spent:.2f} spent (limit: ${daily_limit_usd:.2f}). Stop execution."
+        logger.error(msg)
+        raise BudgetExceededError(msg)
 
     if remaining < daily_limit_usd * 0.3:
-        logger.warning(f"Budget warning: ${spent:.2f} of ${daily_limit_usd:.2f} used ({remaining:.2f} remaining)")
+        logger.warning(
+            f"Budget warning: ${spent:.2f} of ${daily_limit_usd:.2f} used "
+            f"(${remaining:.2f} remaining)"
+        )
 
     return True
+
+
+def check_run_budget(estimated_cost: float, per_run_limit: float = DEFAULT_PER_RUN_LIMIT):
+    """Check if a single run's estimated cost is within the per-run limit.
+
+    Args:
+        estimated_cost: Estimated cost of this run in USD
+        per_run_limit: Maximum cost for a single run
+
+    Raises:
+        BudgetExceededError: If estimated cost exceeds per-run limit
+    """
+    if estimated_cost > per_run_limit:
+        msg = (
+            f"Estimated cost ${estimated_cost:.2f} exceeds per-run limit "
+            f"${per_run_limit:.2f}. Get user approval before proceeding."
+        )
+        logger.error(msg)
+        raise BudgetExceededError(msg)
+
+    # Also check daily budget
+    check_budget()

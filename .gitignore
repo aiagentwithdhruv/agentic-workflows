@@ -1,9 +1,20 @@
 # Secrets
 .env
+.env.*
+.env.local
+.env.production
+.env.backup
 credentials.json
+credentials/
 token.json
 *.pem
 *.key
+*.p12
+*.pfx
+*.jks
+*_rsa
+*_dsa
+*_ed25519
 
 # Temporary files
 .tmp/
@@ -11,8 +22,12 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Run logs (optional — uncomment to track in git)
-# runs/
+# Run logs (contain sensitive execution data)
+runs/
+
+# Databases (may contain scraped PII)
+*.sqlite
+*.db
 
 # OS
 .DS_Store
